@@ -1,0 +1,10 @@
+@font-face {
+  font-family: "CustomFont";
+  src: url("../fonts/Roboto-Regular.ttf");
+}
+
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "CustomFont", sans-serif;
+}
