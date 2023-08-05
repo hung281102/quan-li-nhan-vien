@@ -13,6 +13,7 @@
       :value="modelValue"
       ref="input"
       @input="updateValue"
+      @blur="blur"
     />
     <span class="error-message">{{ errorMessage }}</span>
   </div>
@@ -28,6 +29,7 @@ const props = defineProps({
   width: { type: String, required: true },
   type: { type: String, required: true },
   modelValue: { type: String, required: true },
+  blur: { type: Function, required: false },
 });
 
 const emits = defineEmits(["update:modelValue"]);

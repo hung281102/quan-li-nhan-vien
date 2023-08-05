@@ -1,9 +1,13 @@
 <template>
   <div class="combo-box" :class="width">
-    <label for="" v-if="label">{{ label }}</label>
+    <div class="label" v-if="label">
+      <label for="">{{ label }}</label>
+      <span>*</span>
+    </div>
     <div class="combo-box-container" :class="[width ? 'width-full' : '']">
       <div class="combo-box-main" @click="toggleShowListItem">
         <div class="display-select">{{ displayText }}</div>
+        <!-- <input type="text" :value="displayText" @blur="blur" /> -->
         <div class="select-icon">
           <div :class="{ rotate: isRotateIcon }"></div>
         </div>
@@ -18,6 +22,10 @@
           {{ item[attributeDisplay] }}
         </div>
       </div>
+    </div>
+
+    <div class="error-message" :class="{ hidden: isShowError }">
+      {{ errorMessage }}
     </div>
   </div>
 </template>
@@ -40,16 +48,16 @@ const props = defineProps({
   attributeDisplay: { type: String, required: true },
   attributeBinding: { type: String, required: true },
   textDisplay: { type: String, required: false },
+  errorMessage: { type: String, required: false },
+  blur: { type: Function, required: false },
 });
 
-const emits = defineEmits(["update:modelValue"]);
+const emits = defineEmits(["update:modelValue", "update:errorMessage"]);
 
 const isShowListItem = ref(false);
 const isRotateIcon = ref(false);
+const isShowError = ref(false);
 const displayText = ref(props.textDisplay);
-
-// console.log(props.modelValue);
-// console.log(props.data);
 
 onMounted(() => {
   if (props.modelValue) {
@@ -79,28 +87,53 @@ watch(isShowListItem, (newValue) => {
 });
 
 const selectItem = (item) => {
+  // props.blur();
   isShowListItem.value = false;
   displayText.value = props.data.filter(
     (i) => i[props.attributeBinding] === item[props.attributeBinding]
   )[0][props.attributeDisplay];
-
   emits("update:modelValue", item[props.attributeBinding]);
 };
+
+watch(displayText, (newValue) => {
+  console.log(newValue);
+  if (newValue) {
+    isShowError.value = true;
+  }
+});
 </script>
 
 <style lang="scss">
 .combo-box {
   display: flex;
   flex-direction: column;
+  position: relative;
   &.width-50 {
     width: 50%;
   }
-
-  & label {
-    margin-bottom: 6px;
-    font-size: 14px;
-    font-weight: 600;
+  & .error-message {
+    font-size: 13px;
+    color: red;
+    position: absolute;
+    left: 0;
+    bottom: -15px;
+    &.hidden {
+      display: none;
+    }
   }
+  & .label {
+    display: flex;
+    gap: 6px;
+    & label {
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    & span {
+      color: red;
+    }
+  }
+
   &-container {
     position: relative;
     height: 28px;
@@ -117,6 +150,9 @@ const selectItem = (item) => {
       height: 100%;
       cursor: pointer;
       padding: 0 15px;
+      &.error {
+        border: 1px solid red;
+      }
       .display-select {
         line-height: 28px;
         font-size: 13px;

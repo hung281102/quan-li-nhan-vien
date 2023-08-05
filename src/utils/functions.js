@@ -25,6 +25,16 @@ const functions = {
       }
     }
   },
+  isInclude: function (arr, subArr) {
+    let isSubArray = true;
+    for (let i = 0; i < subArr.length; i++) {
+      if (!arr.includes(subArr[i])) {
+        isSubArray = false;
+        return isSubArray;
+      }
+    }
+    return isSubArray;
+  },
 };
 
 export default functions;

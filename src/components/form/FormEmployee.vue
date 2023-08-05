@@ -12,7 +12,8 @@
             placeHolder="Nhập mã nhân viên"
             width="width-50"
             type="text"
-            errorMessage=""
+            :blur="validateEmployeeCode"
+            :errorMessage="errorMessage.employeeCode"
             v-model="employeeObject.employeeCode"
           ></InputGroup>
           <InputGroup
@@ -21,7 +22,9 @@
             placeHolder="Nhập tên"
             width="width-50"
             type="text"
+            :blur="validateEmployeeName"
             v-model="employeeObject.employeeName"
+            :errorMessage="errorMessage.employeeName"
           ></InputGroup>
         </div>
         <div class="form-row">
@@ -50,6 +53,8 @@
             attributeBinding="departmentID"
             textDisplay="-Chọn phòng ban-"
             v-model="employeeObject.departmentID"
+            :errorMessage="errorMessage.department"
+            :blur="validateDepartment"
           ></ComboBoxBasic>
           <InputGroup
             label="Số điện thoại"
@@ -94,7 +99,7 @@
       <div class="form-footer">
         <Button title="Huỷ" type="sub" @click="closeFormEmployee"></Button>
         <div class="button-right">
-          <Button :title="titleButton" type="primary" @click="save"></Button>
+          <Button :title="titleButton" type="primary" @click="submit"></Button>
         </div>
       </div>
       <div class="close-button" @click="closeFormEmployee">
@@ -135,14 +140,20 @@ const employeeObject = ref({
 });
 const titleForm = ref("");
 const titleButton = ref("");
-const departmentData = inject("departmentData");
+const errorMessage = ref({
+  employeeCode: "",
+  employeeName: "",
+  department: "",
+});
+
+let departmentData = inject("departmentData");
 let idEmployee = inject("employeeId");
 let isShowFormEmployee = inject("isShowFormEmployee");
 let formMode = inject("formMode");
 let isShowLoading = inject("isShowLoading");
 let isShowToastMessage = inject("isShowToastMessage");
 let messageToast = inject("messageToast");
-// CÓ form mode rồi if else
+
 // Hàm lấy mã nhân viên mơí
 const getNewEmployeeCode = async () => {
   await axios
@@ -167,10 +178,9 @@ if (formMode.value === resource.FORM_MODE.add) {
 }
 // Hàm thêm mới nhân viên
 const save = async () => {
-  console.log(formMode.value);
   isShowLoading.value = true;
-  console.log(employeeObject.value);
 
+  // Với mode add
   if (formMode.value === resource.FORM_MODE.add) {
     await axios
       .post(`${resource.API.Employee}`, employeeObject.value)
@@ -187,7 +197,10 @@ const save = async () => {
       .catch((error) => {
         console.log(error);
       });
-  } else if (formMode.value === resource.FORM_MODE.edit) {
+  }
+
+  // Với mode sửa
+  else if (formMode.value === resource.FORM_MODE.edit) {
     console.log("call api sua");
     await axios
       .put(`${resource.API.Employee}/${idEmployee.value}`, employeeObject.value)
@@ -220,15 +233,91 @@ const getEmployeeById = async (id) => {
     });
 };
 
+// Nếu có id truyền vào thì mới gọi hàm lấy thông tin theo id
 if (idEmployee.value) {
   getEmployeeById(idEmployee.value);
 }
+
+// Focus vào input mã nhân viên
 onMounted(() => {
   employeeCodeElm.value.$refs.input.focus();
 });
 
+// Hàm đóng form
 const closeFormEmployee = () => {
   emits("closeForm");
+};
+
+// Validate
+// Validate mã nhân viên
+const validateEmployeeCode = () => {
+  try {
+    if (
+      employeeObject.value.employeeCode.trim() === "" &&
+      employeeObject.value.employeeCode !== null
+    ) {
+      errorMessage.value.employeeCode = "Mã nhân viên không được trống";
+    } else {
+      errorMessage.value.employeeCode = "";
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+// Validate tên
+const validateEmployeeName = () => {
+  try {
+    if (
+      employeeObject.value.employeeName.trim() === "" &&
+      employeeObject.value.employeeName !== null
+    ) {
+      errorMessage.value.employeeName = "Tên nhân viên không được để trống";
+    } else {
+      errorMessage.value.employeeName = "";
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+// Validate phòng ban
+const validateDepartment = () => {
+  try {
+    if (!employeeObject.value.departmentID) {
+      errorMessage.value.department = "Phòng ban không để trống";
+    } else {
+      errorMessage.value.department = "";
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+// Kiểm tra
+const validate = () => {
+  try {
+    validateEmployeeCode();
+    validateEmployeeName();
+    validateDepartment();
+
+    if (
+      !errorMessage.value.employeeName &&
+      !errorMessage.value.employeeCode &&
+      !errorMessage.value.department
+    ) {
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+//
+const submit = () => {
+  if (validate()) {
+    save();
+  }
 };
 </script>
 

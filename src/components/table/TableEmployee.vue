@@ -3,7 +3,11 @@
     <div class="table">
       <div class="table-head">
         <div class="h-column" style="min-width: 35px">
-          <input type="checkbox" />
+          <input
+            type="checkbox"
+            @change="selectAllEmployee"
+            v-model="isCheckedAll"
+          />
         </div>
         <div
           v-for="column in columnData"
@@ -20,9 +24,17 @@
         </div>
       </div>
       <div class="table-body">
-        <div class="b-row" v-for="employee in data" :key="employee.employeeID">
+        <div
+          class="b-row"
+          v-for="employee in dataEmployee"
+          :key="employee.employeeID"
+        >
           <div class="b-column" style="min-width: 35px">
-            <input type="checkbox" />
+            <input
+              type="checkbox"
+              v-model="arrayChecked"
+              :value="employee.employeeID"
+            />
           </div>
           <div
             class="b-column"
@@ -76,14 +88,14 @@
 <script setup>
 import Loading from "@/components/loading/Loading.vue";
 import Dialog from "@/components/dialog/Dialog.vue";
-import { defineProps, defineEmits, ref, watch, inject } from "vue";
+import { defineProps, defineEmits, ref, watch, inject, watchEffect } from "vue";
 import functions from "@/utils/functions.js";
 import resource from "@/utils/resource.js";
 import axios from "axios";
 
 const props = defineProps({
   columnData: { type: Array, required: true },
-  data: { type: Array, required: true },
+  data: { type: Array, required: false },
 });
 
 const emits = defineEmits(["reload"]);
@@ -96,6 +108,75 @@ let idEmployeeClick = inject("employeeId");
 let isShowFormEdit = inject("isShowFormEmployee");
 let formMode = inject("formMode");
 let isShowLoading = inject("isShowLoading");
+let arrayChecked = inject("arrayChecked");
+let isCheckedAll = inject("isCheckedAll");
+let dataEmployee = inject("dataEmployee");
+
+const selectAllEmployee = () => {
+  if (isCheckedAll.value) {
+    // Map để lấy hết id của nhân viên trên bảng
+    let employeeIdArr = dataEmployee.value.map(
+      (employee) => employee.employeeID
+    );
+
+    for (let index = 0; index < employeeIdArr.length; index++) {
+      if (!arrayChecked.value.includes(employeeIdArr[index])) {
+        arrayChecked.value.push(employeeIdArr[index]);
+      }
+    }
+  } else {
+    unCheckAll();
+  }
+};
+
+const unCheckAll = () => {
+  isCheckedAll.value = false;
+
+  const employeeIds = dataEmployee.value.map((employee) => employee.employeeID);
+
+  for (let index = 0; index < employeeIds.length; index++) {
+    arrayChecked.value = arrayChecked.value.filter(
+      (item) => item !== employeeIds[index]
+    );
+  }
+};
+
+// watch(
+//   () => arrayChecked.value,
+//   (newValue) => {
+//     console.log(newValue);
+//     if (
+//       functions.isInclude(
+//         newValue,
+//         props.data.map((employee) => employee.employeeID)
+//       )
+//     ) {
+//       isCheckedAll.value = true;
+//     } else {
+//       isCheckedAll.value = false;
+//     }
+//   },
+//   { deep: true }
+// );
+
+// Theo dõi khi có sự thay đổi về mảng nhân viên chọn và nhân viên (Khi thay đổi trang, số bản ghi trên trang)
+watch(
+  [arrayChecked, dataEmployee],
+  ([newArray1, newArray2], [oldArray1, oldArray2]) => {
+    console.log(newArray1);
+    console.log(newArray2);
+    if (
+      functions.isInclude(
+        newArray1,
+        newArray2.map((employee) => employee.employeeID)
+      )
+    ) {
+      isCheckedAll.value = true;
+    } else {
+      isCheckedAll.value = false;
+    }
+  }
+);
 
 const openFormEdit = (employee) => {
   isShowFormEdit.value = true;

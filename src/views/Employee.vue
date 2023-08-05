@@ -10,9 +10,24 @@
     </div>
     <div class="container-grid">
       <div class="container-grid-header">
-        <div class="action-left"></div>
+        <div class="action-left" v-show="arrayChecked.length > 1">
+          <div style="display: flex; gap: 5px">
+            <span
+              ><b>
+                {{ arrayChecked.length }}
+              </b>
+            </span>
+            <span>được chọn</span>
+          </div>
+          <Button title="Xoá tất cả" type="sub"></Button>
+          <Button
+            title="Bỏ chọn tất cả"
+            type="primary"
+            @click="unSelectAll"
+          ></Button>
+        </div>
         <div class="action-right">
-          <InputSearch v-model="searchKeyword" />
+          <InputSearch v-model="searchKeyword" @input="changeInput" />
           <div class="icon reload-button" @click="reload">
             <div></div>
           </div>
@@ -26,7 +41,6 @@
       </div>
       <div class="container-grid-table">
         <TableEmployee
-          :data="dataEmployee"
           :columnData="resource.COLUMN_TABLE_EMPLOYEE"
           @reload="reload"
         ></TableEmployee>
@@ -86,7 +100,6 @@ import axios from "axios";
 import { onMounted, reactive, ref, watch, provide } from "vue";
 
 const dataEmployee = ref([]);
-
 const pageIndex = ref(1);
 const pageSize = ref(10);
 const sumRecord = ref(0);
@@ -101,6 +114,9 @@ const isShowLoading = ref(false);
 const searchKeyword = ref("");
 const isShowToastMessage = ref(false);
 const messageToast = ref("");
+const arrayChecked = ref([]);
+const isCheckedAll = ref(false);
+const timeout = ref(null);
 provide("isShowLoading", isShowLoading);
 provide("employeeId", employeeIdEdit);
 provide("isShowFormEmployee", isShowFormEmployee);
@@ -108,6 +124,9 @@ provide("formMode", formMode);
 provide("departmentData", departmentData);
 provide("isShowToastMessage", isShowToastMessage);
 provide("messageToast", messageToast);
+provide("arrayChecked", arrayChecked);
+provide("isCheckedAll", isCheckedAll);
+provide("dataEmployee", dataEmployee);
 
 const getEmployee = async (pageIndex, pageSize, keyWord = "") => {
   isShowLoading.value = true;
@@ -156,7 +175,6 @@ const reload = () => {
 };
 
 watch(pageSize, (newValue) => {
-  // console.log(newValue);
   getEmployee(1, newValue);
   currentPage.value = 1;
 });
@@ -168,10 +186,22 @@ watch(currentPage, (newValue) => {
 });
 
 //search
-watch(searchKeyword, (newValue) => {
-  console.log(newValue);
-});
+const changeInput = () => {
+  // modeExtend.value = false;
 
+  if (timeout.value) {
+    clearTimeout(timeout.value);
+  }
+
+  timeout.value = setTimeout(() => {
+    //Gọi đến hàm call API sau 1s
+    if (searchKeyword.value) {
+      getEmployee(pageIndex.value, pageSize.value, searchKeyword.value);
+    } else {
+      getEmployee(pageIndex.value, pageSize.value);
+    }
+  }, 1000);
+};
 // form
 
 const showFormEmployee = () => {
@@ -191,6 +221,10 @@ const getDepartment = async () => {
     });
 };
 getDepartment();
+
+const unSelectAll = () => {
+  arrayChecked.value = [];
+};
 </script>
 
 <style lang="scss">
@@ -225,7 +259,14 @@ getDepartment();
       display: flex;
       align-items: center;
       justify-content: space-between;
+      & .action-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
       & .action-right {
+        margin-left: auto;
         display: flex;
         gap: 10px;
         & .icon {
