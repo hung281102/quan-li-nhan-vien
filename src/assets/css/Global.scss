@@ -2,9 +2,24 @@
   font-family: "CustomFont";
   src: url("../fonts/Roboto-Regular.ttf");
 }
-
-body {
+* {
   padding: 0;
   margin: 0;
+  box-sizing: border-box;
+}
+body {
   font-family: "CustomFont", sans-serif;
+}
+a {
+  text-decoration: none;
+}
+input[type="checkbox"] {
+  transform: scale(1.4);
+  cursor: pointer;
+}
+h1 {
+  margin: 0;
+}
+li {
+  list-style: none;
 }

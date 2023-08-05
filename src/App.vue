@@ -14,5 +14,9 @@ import Header from "@/components/Header.vue";
 <style lang="scss">
 .container {
   display: flex;
+  width: 100%;
+  & .body {
+    width: calc(100% - 170px);
+  }
 }
 </style>
