@@ -76,8 +76,8 @@
     </ul>
   </teleport>
   <Dialog
-    title="Xoá nhân viên"
-    description="Bạn có chắc chắn muốn xoá không"
+    :title="titleDialog"
+    :description="descriptionDialog"
     type="delete"
     v-if="isShowDialog"
     @close="isShowDialog = false"
@@ -103,6 +103,8 @@ const emits = defineEmits(["reload"]);
 const isShowOptionList = ref(false);
 const posOptionY = ref(null);
 const isShowDialog = ref(false);
+const titleDialog = ref("");
+const descriptionDialog = ref("");
 
 let idEmployeeClick = inject("employeeId");
 let isShowFormEdit = inject("isShowFormEmployee");
@@ -112,9 +114,9 @@ let arrayChecked = inject("arrayChecked");
 let isCheckedAll = inject("isCheckedAll");
 let dataEmployee = inject("dataEmployee");
 
+// Hàm chọn nhiều nhân viên
 const selectAllEmployee = () => {
   if (isCheckedAll.value) {
-    // Map để lấy hết id của nhân viên trên bảng
     let employeeIdArr = dataEmployee.value.map(
       (employee) => employee.employeeID
     );
@@ -129,6 +131,7 @@ const selectAllEmployee = () => {
   }
 };
 
+// Hàm bỏ chọn tất cả nhân viên
 const unCheckAll = () => {
   isCheckedAll.value = false;
 
@@ -141,30 +144,10 @@ const unCheckAll = () => {
   }
 };
 
-// watch(
-//   () => arrayChecked.value,
-//   (newValue) => {
-//     console.log(newValue);
-//     if (
-//       functions.isInclude(
-//         newValue,
-//         props.data.map((employee) => employee.employeeID)
-//       )
-//     ) {
-//       isCheckedAll.value = true;
-//     } else {
-//       isCheckedAll.value = false;
-//     }
-//   },
-//   { deep: true }
-// );
-
 // Theo dõi khi có sự thay đổi về mảng nhân viên chọn và nhân viên (Khi thay đổi trang, số bản ghi trên trang)
 watch(
   [arrayChecked, dataEmployee],
   ([newArray1, newArray2], [oldArray1, oldArray2]) => {
-    console.log(newArray1);
-    console.log(newArray2);
     if (
       functions.isInclude(
         newArray1,
@@ -178,12 +161,14 @@ watch(
   }
 );
 
+// Mở form chỉnh sửa nhân viên
 const openFormEdit = (employee) => {
   isShowFormEdit.value = true;
   idEmployeeClick.value = employee.employeeID;
   formMode.value = resource.FORM_MODE.edit;
 };
 
+// Mở list action
 const openOptionList = (event, employee) => {
   // console.log(employee);
   idEmployeeClick.value = employee.employeeID;
@@ -197,6 +182,7 @@ const openOptionList = (event, employee) => {
   }
 };
 
+// Hàm click outside
 const clickOutSide = (e) => {
   if (
     !e.target.classList.contains("option-item") &&
@@ -207,6 +193,8 @@ const clickOutSide = (e) => {
     isShowOptionList.value = false;
   }
 };
+
+// Theo dõi biến mở list action, nếu mở thì add sự kiện click outside vào dom
 watch(isShowOptionList, () => {
   if (isShowOptionList.value) {
     document.addEventListener("click", clickOutSide);
@@ -215,12 +203,15 @@ watch(isShowOptionList, () => {
   }
 });
 
+// Hàm cảnh bảo xoá (Hiện dialog)
 const warningDelete = () => {
   isShowDialog.value = true;
+  titleDialog.value = "Xoá nhân viên";
+  descriptionDialog.value = "Bạn có chắc muốn xoá nhân viên không";
 };
 
+// Hàm xác nhận xoá nhân viên
 const deleteEmployee = () => {
-  // console.log(idEmployeeClick.value);
   isShowOptionList.value = false;
   isShowLoading.value = true;
   isShowDialog.value = false;

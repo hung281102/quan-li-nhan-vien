@@ -87,7 +87,6 @@ watch(isShowListItem, (newValue) => {
 });
 
 const selectItem = (item) => {
-  // props.blur();
   isShowListItem.value = false;
   displayText.value = props.data.filter(
     (i) => i[props.attributeBinding] === item[props.attributeBinding]

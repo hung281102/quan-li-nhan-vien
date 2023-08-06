@@ -19,7 +19,7 @@
             </span>
             <span>được chọn</span>
           </div>
-          <Button title="Xoá tất cả" type="sub"></Button>
+          <Button title="Xoá tất cả" type="sub" @click="deleteMulty"></Button>
           <Button
             title="Bỏ chọn tất cả"
             type="primary"
@@ -32,7 +32,14 @@
             <div></div>
           </div>
           <div class="icon export-excel">
-            <div></div>
+            <div class="div">
+              <a
+                class="btn-export"
+                :href="`${resource.API.Employee}/export-excel?query=${searchKeyword}`"
+              >
+                <div></div>
+              </a>
+            </div>
           </div>
           <div class="icon setting-button">
             <div></div>
@@ -81,6 +88,14 @@
     type="success"
     v-if="isShowToastMessage"
   ></ToastMessage>
+  <Dialog
+    :title="titleDialog"
+    :description="descriptionDialog"
+    type="delete"
+    v-if="isShowDialog"
+    @close="isShowDialog = false"
+    @delete="acceptDelete"
+  ></Dialog>
 </template>
 
 <script setup>
@@ -91,6 +106,7 @@ import Paging from "@/components/paging/Paging.vue";
 import ComboBoxBasic from "@/components/combo-box/ComboBoxBasic.vue";
 import FormEmployee from "@/components/form/FormEmployee.vue";
 import Loading from "@/components/loading/Loading.vue";
+import Dialog from "@/components/dialog/Dialog.vue";
 import ToastMessage from "@/components/toast-message/ToastMessage.vue";
 
 import resource from "@/utils/resource.js";
@@ -117,6 +133,9 @@ const messageToast = ref("");
 const arrayChecked = ref([]);
 const isCheckedAll = ref(false);
 const timeout = ref(null);
+const isShowDialog = ref(false);
+const titleDialog = ref("");
+const descriptionDialog = ref("");
 provide("isShowLoading", isShowLoading);
 provide("employeeId", employeeIdEdit);
 provide("isShowFormEmployee", isShowFormEmployee);
@@ -128,6 +147,7 @@ provide("arrayChecked", arrayChecked);
 provide("isCheckedAll", isCheckedAll);
 provide("dataEmployee", dataEmployee);
 
+// Hàm lấy dữ liệu nhân viên
 const getEmployee = async (pageIndex, pageSize, keyWord = "") => {
   isShowLoading.value = true;
   let api;
@@ -161,8 +181,6 @@ const getEmployee = async (pageIndex, pageSize, keyWord = "") => {
           salary: employee.salary,
         };
       });
-
-      // currentPage.value = 1;
     })
     .catch((error) => {
       console.log(error);
@@ -170,25 +188,24 @@ const getEmployee = async (pageIndex, pageSize, keyWord = "") => {
 };
 getEmployee(pageIndex.value, pageSize.value);
 
+// Hàm reload lại dữ liệu
 const reload = () => {
   getEmployee(pageIndex.value, pageSize.value);
 };
 
+// Theo dõi thay đổi số bản ghi trên một trang
 watch(pageSize, (newValue) => {
   getEmployee(1, newValue);
   currentPage.value = 1;
 });
 
+// Theo dõi thay đổi số pageIndex (số trang) để call api
 watch(currentPage, (newValue) => {
-  // call api tăng page index
-
   getEmployee(newValue, pageSize.value);
 });
 
-//search
+// Hàm search (bắt sự kiện thay đổi trên input)
 const changeInput = () => {
-  // modeExtend.value = false;
-
   if (timeout.value) {
     clearTimeout(timeout.value);
   }
@@ -202,14 +219,15 @@ const changeInput = () => {
     }
   }, 1000);
 };
-// form
 
+// Hàm hiện form nhân viên (mode add)
 const showFormEmployee = () => {
   formMode.value = resource.FORM_MODE.add;
   isShowFormEmployee.value = true;
   employeeIdEdit.value = "";
 };
 
+// Hàm lấy dữ liệu phòng ban
 const getDepartment = async () => {
   await axios
     .get(`${resource.API.Department}/GetAll`)
@@ -222,8 +240,36 @@ const getDepartment = async () => {
 };
 getDepartment();
 
+// Hàm bỏ chọn tất cả
 const unSelectAll = () => {
   arrayChecked.value = [];
+};
+
+// Hàm hiện ra dialog cảnh báo khi xoá
+const deleteMulty = () => {
+  isShowDialog.value = true;
+  titleDialog.value = "Xoá nhiều nhân viên";
+  descriptionDialog.value = "Bạn có chắc xoá những nhân viên được chọn không";
+};
+
+// Hàm confirm xoá nhiều nhân viên
+const acceptDelete = async () => {
+  isShowLoading.value = true;
+  isShowDialog.value = false;
+
+  await axios
+    .delete(`${resource.API.Employee}/delete-multy`, {
+      data: arrayChecked.value,
+    })
+    .then((response) => {
+      isShowLoading.value = false;
+      reload();
+      console.log(response);
+      arrayChecked.value = [];
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 };
 </script>
 

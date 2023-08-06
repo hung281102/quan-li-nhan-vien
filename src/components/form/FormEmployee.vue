@@ -127,6 +127,9 @@ const props = defineProps({
 const emits = defineEmits(["closeForm", "reload"]);
 
 const employeeCodeElm = ref(null);
+const titleForm = ref("");
+const titleButton = ref("");
+
 const employeeObject = ref({
   employeeName: "",
   employeeCode: "",
@@ -138,8 +141,7 @@ const employeeObject = ref({
   positionJob: "",
   salary: 0,
 });
-const titleForm = ref("");
-const titleButton = ref("");
+
 const errorMessage = ref({
   employeeCode: "",
   employeeName: "",
@@ -154,7 +156,7 @@ let isShowLoading = inject("isShowLoading");
 let isShowToastMessage = inject("isShowToastMessage");
 let messageToast = inject("messageToast");
 
-// Hàm lấy mã nhân viên mơí
+// Hàm lấy mã nhân viên mới
 const getNewEmployeeCode = async () => {
   await axios
     .get(`${resource.API.Employee}/new-employee-code`)
@@ -293,7 +295,7 @@ const validateDepartment = () => {
   }
 };
 
-// Kiểm tra
+// Kiểm tra validate
 const validate = () => {
   try {
     validateEmployeeCode();
@@ -313,7 +315,7 @@ const validate = () => {
   }
 };
 
-//
+// Xác nhận thêm nhân viên khi thoả mãn validate
 const submit = () => {
   if (validate()) {
     save();
